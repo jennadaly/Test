@@ -1,0 +1,31 @@
+"Town","FIPS","Year","Birth.Weight","Gestational.Age","Mother.s.Age","Mother.s.Race.Ethnicity","Variable","Value","value_avail","max_value_avail","year_avail","min_year","Earliest.Data.Available"
+"Andover",901301080,"2014","All","37 weeks or more","0 to 14 years","All","Births",0,0,0,4,4,NA
+"Andover",901301080,"2012-2014","All","37 weeks or more","0 to 14 years","All","Births",0,0,0,4,4,NA
+"Andover",901301080,"2010-2014","All","37 weeks or more","0 to 14 years","All","Births",0,0,0,4,4,NA
+"Andover",901301080,"2014","All","37 weeks or more","15 to 19 years","All","Births",0,0,1,4,3,"2010-2014"
+"Andover",901301080,"2012-2014","All","37 weeks or more","15 to 19 years","All","Births",0,0,1,4,3,"2010-2014"
+"Andover",901301080,"2010-2014","All","37 weeks or more","15 to 19 years","All","Births",1,1,1,3,3,"2010-2014"
+"Andover",901301080,"2014","All","37 weeks or more","20 to 24 years","All","Births",1,1,1,1,1,"2014"
+"Andover",901301080,"2012-2014","All","37 weeks or more","20 to 24 years","All","Births",6,1,1,2,1,"2014"
+"Andover",901301080,"2010-2014","All","37 weeks or more","20 to 24 years","All","Births",10,1,1,3,1,"2014"
+"Andover",901301080,"2014","All","37 weeks or more","25 to 29 years","All","Births",2,1,1,1,1,"2014"
+"Andover",901301080,"2012-2014","All","37 weeks or more","25 to 29 years","All","Births",7,1,1,2,1,"2014"
+"Andover",901301080,"2010-2014","All","37 weeks or more","25 to 29 years","All","Births",15,1,1,3,1,"2014"
+"Andover",901301080,"2014","All","37 weeks or more","30 to 34 years","All","Births",7,1,1,1,1,"2014"
+"Andover",901301080,"2012-2014","All","37 weeks or more","30 to 34 years","All","Births",19,1,1,2,1,"2014"
+"Andover",901301080,"2010-2014","All","37 weeks or more","30 to 34 years","All","Births",36,1,1,3,1,"2014"
+"Andover",901301080,"2014","All","37 weeks or more","35 to 39 years","All","Births",3,1,1,1,1,"2014"
+"Andover",901301080,"2012-2014","All","37 weeks or more","35 to 39 years","All","Births",11,1,1,2,1,"2014"
+"Andover",901301080,"2010-2014","All","37 weeks or more","35 to 39 years","All","Births",20,1,1,3,1,"2014"
+"Andover",901301080,"2014","All","37 weeks or more","40 to 44 years","All","Births",0,0,1,4,2,"2012-2014"
+"Andover",901301080,"2012-2014","All","37 weeks or more","40 to 44 years","All","Births",1,1,1,2,2,"2012-2014"
+"Andover",901301080,"2010-2014","All","37 weeks or more","40 to 44 years","All","Births",2,1,1,3,2,"2012-2014"
+"Andover",901301080,"2014","All","37 weeks or more","45 years and older","All","Births",0,0,1,4,2,"2012-2014"
+"Andover",901301080,"2012-2014","All","37 weeks or more","45 years and older","All","Births",1,1,1,2,2,"2012-2014"
+"Andover",901301080,"2010-2014","All","37 weeks or more","45 years and older","All","Births",1,1,1,3,2,"2012-2014"
+"Andover",901301080,"2014","All","37 weeks or more","All","All","Births",13,1,1,1,1,"2014"
+"Andover",901301080,"2012-2014","All","37 weeks or more","All","All","Births",45,1,1,2,1,"2014"
+"Andover",901301080,"2010-2014","All","37 weeks or more","All","All","Births",85,1,1,3,1,"2014"
+"Andover",901301080,"2014","All","37 weeks or more","All","Black","Births",0,0,0,4,4,NA
+"Andover",901301080,"2012-2014","All","37 weeks or more","All","Black","Births",0,0,0,4,4,NA
+"Andover",901301080,"2010-2014","All","37 weeks or more","All","Black","Births",0,0,0,4,4,NA
