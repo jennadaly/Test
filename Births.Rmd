@@ -50,7 +50,7 @@ demo_select$Year <- factor(demo_select$Year, levels = c("2014", "2012-2014", "20
 #### Create column that checks to see if data is available for a given year
 ```{r, eval=FALSE}
 demo_select2 <- demo_select %>% 
-  select(-Measure.Type) %>% 
+  select(-c(Measure.Type, FIPS)) %>% 
   arrange(Town, Birth.Weight, Gestational.Age, Mother.s.Age, Mother.s.Race.Ethnicity) %>% 
   group_by(Town, Birth.Weight, Gestational.Age, Mother.s.Age, Mother.s.Race.Ethnicity, Year) %>% 
   mutate(value_avail = ifelse((Value > 0), 1, 0)) 
@@ -118,4 +118,13 @@ knitr::kable(table)
 ```{r, echo=FALSE}
 DT::datatable(demo_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
               class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Mother's Age", "Mother's Race/Ethnicity", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Demographic Characteristics")
+```
+```{r, echo=FALSE}
+DT::datatable(behav_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
+              class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Initiation of Prenatal Care", "Smoking During Pregnancy", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Behavior Characteristics")
+```
+
+```{r, echo=FALSE}
+DT::datatable(socio_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
+              class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Mother's Education", "Mother's Marital Status", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Socioeconomic Characteristics")
 ```
