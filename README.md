@@ -93,5 +93,14 @@ demo_available <- demo_select6 %>%
 ```{r}
 demo_available <- demo_available[!duplicated(demo_available), ]
 ```
-
+#### Take a peak at the table with each step represented in a column
+```{r, results = "asis"}
+table <- head(demo_select6_print)
+knitr::kable(table)
+```
+#### Finished, searchable product
+```{r, echo=FALSE}
+DT::datatable(demo_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
+              class = "cell-border stripe", colnames = c("Town", "FIPS", "Birth Weight", "Gestational Age", "Mother's Age", "Mother's Race/Ethnicity", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Socioeconmic Characteristics")
+```
 
