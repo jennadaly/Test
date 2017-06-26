@@ -24,7 +24,9 @@ For example, *are you looking for how many births took place in Hartford to moth
 
 You'll have to first look that the 3-year aggregation data set for that information, becasue no data are available in the 1-year data set. These are the types of questions that can be answered with these tables. 
 
-### Following example code is for the Demographics data sets:
+*Please note that these tables reflect availabilities for the latest years available. If no data are available for a given combination of characteristics, the Available column will be blank.*
+
+### Following code example shows the step by step process for creating the search tables, in particular, the Demographics data sets:
 
 #### Bring in individual aggregations
 ```{r, eval=FALSE}
@@ -115,5 +117,5 @@ knitr::kable(table)
 #### Finished, searchable product
 ```{r, echo=FALSE}
 DT::datatable(demo_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
-              class = "cell-border stripe", colnames = c("Town", "FIPS", "Birth Weight", "Gestational Age", "Mother's Age", "Mother's Race/Ethnicity", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Socioeconmic Characteristics")
+              class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Mother's Age", "Mother's Race/Ethnicity", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Demographic Characteristics")
 ```
