@@ -1,5 +1,5 @@
 ---
-title: "Births Data"
+title: "CTDPH Births Data by Maternal Characteristics"
 output:
   html_document: default
   pdf_document: default
@@ -7,7 +7,7 @@ output:
 ---
 
 ```{r, echo=FALSE}
-knitr::opts_chunk$set(error = TRUE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 #### The CT Department of Public Health releases data that provides select birth outcomes (birthweight, gestational age) for Connecticut resident births along with select demographic, behavioral, and socioeconmic characteristics about the mother. 
@@ -128,3 +128,104 @@ DT::datatable(behav_available, filter = "top", options = list(pageLength = 5), r
 DT::datatable(socio_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
               class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Mother's Education", "Mother's Marital Status", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Socioeconomic Characteristics")
 ```
+
+#### Some Observations
+
+The overall annual trend dating back to 1999, shows that the total number of births occuring in CT has declined from just over 86,000 in 1999 to just over 72,000 in 2014. 
+
+```{r, echo=FALSE, error=FALSE}
+library(plotly)
+annual <- demo_all_values[!grepl("-", demo_all_values$Year), ]
+annual_plot <- annual %>% 
+  group_by(Year) %>% 
+  summarise(Total = sum(Value)) %>% 
+  plot_ly(x = ~Year, y = ~Total, type = 'scatter', mode = 'lines+markers', name = 'Annual Births',
+          marker = list(color = 'blue', width = 3))  %>% 
+  layout(title = "Total Annual Births in Connecticut")
+
+annual_plot
+```
+
+When we break down those totals into age groups, we see a decline in teen births, and an increase in mother's aged 45+. 
+```{r, echo=FALSE}
+
+age_annual <- demo_all[demo_all$Birth.Weight == "All" & demo_all$Gestational.Age == "All" & 
+                demo_all$Mother.s.Race.Ethnicity == "All" & demo_all$Measure.Type == "Number" &
+                !grepl("-", demo_all$Year) ,]
+
+age2 <- age_annual %>% 
+  select(-c(FIPS, Birth.Weight, Gestational.Age, Mother.s.Race.Ethnicity, Measure.Type, Variable)) %>% 
+  group_by(Year, Mother.s.Age) %>% 
+  summarise(Total = sum(Value))
+
+library(reshape)
+age_wide <- cast(age2, Year ~ Mother.s.Age)
+
+x <- list(
+  title = "Years", 
+  ticklen = 5,
+  tickwidth = 1
+)
+y <- list(
+  title = "Total Births",
+  ticklen = 15,
+  tickwidth = 1
+)
+m <- list(l=50, r=20) # l = left; r = right; t = top; b = bottom
+
+
+age_plot1 <- plot_ly(age_wide) %>% 
+  add_trace(x = ~Year, y = ~`0 to 14 years`, type = 'bar', name = 'Total_0to14', marker = list(color = 'blue', width = 3)) %>% 
+layout(margin=m,
+       title = "Total Births Per Age Group - 0 to 14 Years", 
+       xaxis = x, yaxis = y)
+
+age_plot2 <- plot_ly(age_wide) %>% 
+  add_trace(x = ~Year, y = ~`15 to 19 years`, type = 'bar', name = 'Total_15to19', marker = list(color = 'red', width = 3)) %>% 
+  layout(margin=m,
+         title = "Total Births Per Age Group - 15 to 19 years", 
+         xaxis = x, yaxis = y)
+
+age_plot3 <- plot_ly(age_wide) %>% 
+  add_trace(x = ~Year, y = ~`20 to 24 years`, type = 'bar', name = 'Total_20to24', marker = list(color = 'green', width = 3)) %>% 
+  layout(margin=m,
+         title = "Total Births Per Age Group", 
+         xaxis = x, yaxis = y)
+
+age_plot4 <- plot_ly(age_wide) %>% 
+  add_trace(x = ~Year, y = ~`25 to 29 years`, type = 'bar', name = 'Total_25to29', marker = list(color = 'purple', width = 3)) %>% 
+  layout(margin=m,
+         title = "Total Births Per Age Group", 
+         xaxis = x, yaxis = y)
+
+age_plot5 <- plot_ly(age_wide) %>% 
+  add_trace(x = ~Year, y = ~`30 to 34 years`, type = 'bar', name = 'Total_30to34', marker = list(color = 'pink', width = 3)) %>% 
+  layout(margin=m,
+         title = "Total Births Per Age Group", 
+         xaxis = x, yaxis = y)
+
+age_plot6 <- plot_ly(age_wide) %>% 
+  add_trace(x = ~Year, y = ~`35 to 39 years`, type = 'bar', name = 'Total_35to39', marker = list(color = 'orange', width = 3)) %>% 
+  layout(margin=m,
+         title = "Total Births Per Age Group", 
+         xaxis = x, yaxis = y)
+age_plot7 <- plot_ly(age_wide) %>% 
+  add_trace(x = ~Year, y = ~`40 to 44 years`, type = 'bar', name = 'Total_40to44', marker = list(color = 'yellow', width = 3)) %>% 
+  layout(margin=m,
+         title = "Total Births Per Age Group", 
+         xaxis = x, yaxis = y)
+age_plot8 <- plot_ly(age_wide) %>% 
+  add_trace(x = ~Year, y = ~`45 years and older`, type = 'bar', name = 'Total_45+', marker = list(color = 'black', width = 3)) %>% 
+  layout(margin=m,
+         title = "Total Births Per Age Group", 
+         xaxis = x, yaxis = y)
+
+
+plot_all_ages <- subplot(age_plot1, age_plot2, age_plot3, age_plot4, 
+                         age_plot5, age_plot6, age_plot7, age_plot8, which_layout = "merge")
+plot_all_ages
+
+```
+
+
+
