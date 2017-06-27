@@ -181,7 +181,7 @@ plot_all_age_plots
 
 #Births by Education
 ###########################################################################################################################################
-init_annual <- socio_all[socio_all$Birth.Weight == "All" & socio_all$Gestational.Age == "All" & 
+edu_annual <- socio_all[socio_all$Birth.Weight == "All" & socio_all$Gestational.Age == "All" & 
                           socio_all$Mother.s.Marital.Status == "All" & socio_all$Measure.Type == "Number" &
                           !grepl("-", socio_all$Year) ,]
 
@@ -310,3 +310,69 @@ plot_all_init <- subplot(init_plot1, init_plot2, init_plot3, init_plot4, init_pl
 plot_all_init_plots <- subplot(plot_all_init, init_plot6, nrows=2, margin = 0.09, heights = c(0.6, 0.3))
 
 plot_all_init
+
+
+#Towns with the most births
+library(rgdal)
+CT_towns_shp <- readOGR("/home/jdaly/Desktop/Data/Births/Shapefile/cb_2016_09_cousub_500k.shp", "cb_2016_09_cousub_500k")
+plot(CT_towns_shp)
+
+total_births_by_town_2014 <- age_annual[age_annual$Year == "2014" & age_annual$Mother.s.Age == "All" & age_annual$Town != "Connecticut",]
+
+total_births_by_town_2014 <- total_births_by_town_2014 %>% 
+  select(Town, Year, Value)
+
+################################################################################################################
+install.packages("gpclib")
+library(gpclib)
+library(maptools)
+# class(CT_towns_shp)
+# names(CT_towns_shp)
+# print(CT_towns_shp$NAME)
+# num.towns <- length(CT_towns_shp$NAME)
+# mydata <- data.frame(NAME=CT_towns_shp$NAME, id=CT_towns_shp$ID_1)
+
+CT_towns <- fortify(CT_towns_shp, region = "NAME")
+merge.shp<-merge(CT_towns, total_births_by_town_2014, by.x="id", by.y = "Town", all.x=TRUE)
+final.plot<-merge.shp[order(merge.shp$order), ] 
+
+# popup1 <- paste0("<span style='color: #7f0000'><strong>Total Births 2014</strong></span>",
+#                  "<br><span style='color: salmon;'><strong>Town: </strong></span>", 
+#                  total_births_by_town_2014$Town, 
+#                  "<br><span style='color: salmon;'><strong>Number of Births: </strong></span>", 
+#                  total_births_by_town_2014$Value
+# )
+
+
+mymap2 <- ggplot() + 
+          geom_polygon(data = final.plot, aes(x = long, y = lat, group = id, fill = Value), 
+                       color = "black") +
+  scale_fill_distiller(name="Births", palette = "RdBu") +
+  labs(title="Total Births in 2014")
+
+gg <- ggplotly(mymap2)
+
+################################################################################################################
+
+#Towns with most increase of births overall
+
+trend_towns <- behav_all_values[!grepl("-", behav_all_values$Year) & behav_all_values$Town != "Connecticut",] %>% 
+  select(Town, Year, Value)
+trend_towns$Year <- as.numeric(trend_towns$Year)
+
+trend_towns_recent <- trend_towns[trend_towns$Year > 2009,]
+
+mylinegraph <- ggplot(trend_towns, aes(x=Year, y=Value, color=Town)) +
+  geom_line(aes(group = Town)) +
+  scale_colour_hue(name="Town", l=30)
+
+ll <- ggplotly(mylinegraph)
+
+ll
+
+#Towns with most decrease of births overall
+
+
+
+
+

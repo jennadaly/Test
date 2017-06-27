@@ -129,9 +129,9 @@ DT::datatable(socio_available, filter = "top", options = list(pageLength = 5), r
               class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Mother's Education", "Mother's Marital Status", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Socioeconomic Characteristics")
 ```
 
-#### Some Observations
+### Some Observations
 
-The overall annual trend dating back to 1999, shows that the total number of births occuring in CT has declined from just over 86,000 in 1999 to just over 72,000 in 2014. 
+#### The overall annual trend dating back to 1999, shows that the total number of births occuring in CT has declined from just over 86,000 in 1999 to just over 72,000 in 2014. 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(plotly)
@@ -146,7 +146,7 @@ annual_plot <- annual %>%
 annual_plot
 ```
 
-When we break down those totals into age groups, we see a decline in teen births, and an increase in mother's aged 45+. 
+#### When we break down those totals into age groups, we see a decline in teen births, and an increase in mother's aged 45+. 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 age_annual <- demo_all[demo_all$Birth.Weight == "All" & demo_all$Gestational.Age == "All" & 
@@ -229,7 +229,7 @@ plot_all_age_plots <- subplot(plot_all_ages, plot_young_old, nrows=2, margin = 0
 plot_all_age_plots
 
 ```
-When we break down those totals into education levels, we see an increase over time in the number of mother's who have received 17 years or more of education, while mother's with high school, GED, or college level education have all decreased. 
+#### When we break down those totals into education levels, we see an increase over time in the number of mother's who have received 17 years or more of education, while mother's with high school, GED, or college level education have all decreased. 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 init_annual <- socio_all[socio_all$Birth.Weight == "All" & socio_all$Gestational.Age == "All" & 
@@ -290,7 +290,7 @@ plot_all_edu <- subplot(edu_plot1, edu_plot2, edu_plot3, edu_plot4, edu_plot5, s
 
 plot_all_edu
 ```
-When we break down those totals into groups indentified by when the mother's first intiated prenatal care, we see the majority of mother's inititating prenatal care within the first trimester. We've also broken out the total number of mother's considered in the "Late" category. Late prenatal care is the initiation of prenatal care after the first trimester of pregnancy. 
+#### When we break down those totals into groups indentified by when the mother's first intiated prenatal care, we see the majority of mother's inititating prenatal care within the first trimester. We've also broken out the total number of mother's considered in the "Late" category. Late prenatal care is the initiation of prenatal care after the first trimester of pregnancy. 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 init_annual <- behav_all[behav_all$Birth.Weight == "All" & behav_all$Gestational.Age == "All" & 
@@ -363,3 +363,60 @@ plot_all_init_plots <- subplot(plot_all_init, init_plot6, nrows=2, margin = 0.09
 
 plot_all_init_plots
 ```
+
+#### Now let's call out some interesting facts about towns across the state.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(gpclib)
+library(maptools)
+# class(CT_towns_shp)
+# names(CT_towns_shp)
+# print(CT_towns_shp$NAME)
+# num.towns <- length(CT_towns_shp$NAME)
+# mydata <- data.frame(NAME=CT_towns_shp$NAME, id=CT_towns_shp$ID_1)
+
+CT_towns <- fortify(CT_towns_shp, region = "NAME")
+merge.shp<-merge(CT_towns, total_births_by_town_2014, by.x="id", by.y = "Town", all.x=TRUE)
+final.plot<-merge.shp[order(merge.shp$order), ] 
+
+# popup1 <- paste0("<span style='color: #7f0000'><strong>Total Births 2014</strong></span>",
+#                  "<br><span style='color: salmon;'><strong>Town: </strong></span>", 
+#                  total_births_by_town_2014$Town, 
+#                  "<br><span style='color: salmon;'><strong>Number of Births: </strong></span>", 
+#                  total_births_by_town_2014$Value
+# )
+
+
+mymap2 <- ggplot() + 
+          geom_polygon(data = final.plot, aes(x = long, y = lat, group = id, fill = Value), 
+                       color = "black") +
+  scale_fill_distiller(name="Births", palette = "RdBu") +
+  labs(title="Total Births in 2014")
+
+gg <- ggplotly(mymap2, width=1000, height=715)
+
+gg
+```
+
+
+#### Each town overall
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+trend_towns <- behav_all_values[!grepl("-", behav_all_values$Year) & behav_all_values$Town != "Connecticut",] %>% 
+  select(Town, Year, Value)
+trend_towns$Year <- as.numeric(trend_towns$Year)
+
+trend_towns_recent <- trend_towns[trend_towns$Year > 2009,]
+
+mylinegraph <- ggplot(trend_towns, aes(x=Year, y=Value, color=Town)) +
+  geom_line(aes(group = Town)) +
+  scale_colour_hue(name="Town", l=30)
+
+ll <- ggplotly(mylinegraph, width=1000, height=715)
+
+ll
+```
+
+
+
+
+
