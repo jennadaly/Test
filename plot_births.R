@@ -1,157 +1,108 @@
----
-title: "CTDPH Births Data by Maternal Characteristics"
-output:
-  html_document: default
-  pdf_document: default
-  word_document: default
----
-
-```{r, echo=FALSE}
-knitr::opts_chunk$set(error = FALSE)
-```
-
-#### The CT Department of Public Health releases data that provides select birth outcomes (birthweight, gestational age) for Connecticut resident births along with select demographic, behavioral, and socioeconmic characteristics about the mother. 
-
-CTdata.org provides these data sets in 1, 3, and 5 year averages due some of the levels showing little data at the one year level. Therefore, depending on which combination of characteristics the user is interested in, data may not be available at the 1 or 3 level data, instead only available at the 5 year level. 
-
-**But how can the user know at which level should they start exploring?**
-
-*That's where these tables come in.* 
-
-#### The tables found in this repository are meant to guide the user to the earliest level of aggregation in which data are available for a given town and combination of characteristics. 
-
-For example, *are you looking for how many births took place in Hartford to mother's age 45 years and older and that carried to full term?* 
-
-You'll have to first look that the 3-year aggregation data set for that information, becasue no data are available in the 1-year data set. These are the types of questions that can be answered with these tables. 
-
-*Please note that these tables reflect availabilities for the latest years available. If no data are available for a given combination of characteristics, the Available column will be blank.*
-
-### Following code example shows the step by step process for creating the search tables, in particular, the Demographics data sets:
-
-#### Bring in individual aggregations
-```{r, eval=FALSE}
-demo_1 <- read.csv(paste0(path_to_data, "/", "maternal_characteristics_demographics_1-Year.csv"), stringsAsFactors = F, header=T)
-demo_3 <- read.csv(paste0(path_to_data, "/", "maternal_characteristics_demographics_3-Year.csv"), stringsAsFactors = F, header=T)
-demo_5 <- read.csv(paste0(path_to_data, "/", "maternal_characteristics_demographics_5-Year.csv"), stringsAsFactors = F, header=T)
-```
-
-#### Combine all aggregations
-```{r, eval=FALSE}
-demo_all <- rbind(demo_1, demo_3, demo_5)
-```
-
-#### Isolate to latest years and numbers only (no percent values)
-```{r, eval=FALSE}
-years <- c("2014", "2012-2014", "2010-2014")
-demo_select <- demo_all[demo_all$Measure.Type == "Number" & demo_all$Year %in% years,]
-demo_select$Year <- factor(demo_select$Year, levels = c("2014", "2012-2014", "2010-2014"))
-```
-
-#### Create column that checks to see if data is available for a given year
-```{r, eval=FALSE}
-demo_select2 <- demo_select %>% 
-  select(-c(Measure.Type, FIPS)) %>% 
-  arrange(Town, Birth.Weight, Gestational.Age, Mother.s.Age, Mother.s.Race.Ethnicity) %>% 
-  group_by(Town, Birth.Weight, Gestational.Age, Mother.s.Age, Mother.s.Race.Ethnicity, Year) %>% 
-  mutate(value_avail = ifelse((Value > 0), 1, 0)) 
-```
-
-#### Based on availability column, finds groups that have data vs groups with no data
-```{r, eval=FALSE}
-demo_select3 <- demo_select2 %>% 
-  group_by(`Town`, Birth.Weight, Gestational.Age, Mother.s.Age, Mother.s.Race.Ethnicity) %>% 
-  mutate(max_value_avail = max(value_avail))
-```
-
-#### Conditionally assigns year_avail based on comparison of availabilty column and max column
-```{r, eval=FALSE}
-demo_select4 <- demo_select3 %>% 
-  mutate(year_avail = ifelse((value_avail == 0 & max_value_avail == 0), "None", NA), 
-         year_avail = ifelse((value_avail == 0 & max_value_avail == 1), NA, NA), 
-         year_avail = ifelse((value_avail == 1 & max_value_avail == 1), Year, NA))
-```
-
-#### Assigns all NAs to 4 (so they may be sorted)
-```{r, eval=FALSE}
-demo_select4[is.na(demo_select4)] <- 4
-```
-
-#### Create column that reflects min year in which data is available
-```{r, eval=FALSE}
-demo_select5 <- demo_select4 %>% 
-  group_by(`Town`, Birth.Weight, Gestational.Age, Mother.s.Age, Mother.s.Race.Ethnicity) %>% 
-  mutate(min_year = min(year_avail))
-```
-
-#### Set up for assignments
-```{r, eval=FALSE}
-demo_select5 <- as.data.frame(demo_select5)
-```
-
-#### Assign year available based on value of min year column
-```{r, eval=FALSE}
-demo_select6 <- demo_select5 %>% 
-  mutate(Earliest.Data.Available = ifelse(min_year  == 1, "2014",
-                    ifelse(min_year== 2, "2012-2014",
-                    ifelse(min_year == 3, "2010-2014",
-                    ifelse(min_year == 4, NA, NA)))))
-```
-
-#### Remove extra columns
-```{r, eval=FALSE}
-demo_available <- demo_select6 %>% 
-  select(-c(year_avail, Year, Variable, Value, value_avail, max_value_avail, year_avail, min_year))
-```
-
-#### Remove duplicates (isolate latest year available)
-```{r, eval=FALSE}
-demo_available <- demo_available[!duplicated(demo_available), ]
-```
-#### Take a peak at the table with each step represented in a column
-```{r, results = "asis"}
-table <- head(demo_select6_print)
-knitr::kable(table)
-```
-
-
-#### Finished, searchable product
-```{r, echo=FALSE}
-DT::datatable(demo_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
-              class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Mother's Age", "Mother's Race/Ethnicity", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Demographic Characteristics")
-```
-```{r, echo=FALSE}
-DT::datatable(behav_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
-              class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Initiation of Prenatal Care", "Smoking During Pregnancy", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Behavior Characteristics")
-```
-
-```{r, echo=FALSE}
-DT::datatable(socio_available, filter = "top", options = list(pageLength = 5), rownames = FALSE, 
-              class = "cell-border stripe", colnames = c("Town", "Birth Weight", "Gestational Age", "Mother's Education", "Mother's Marital Status", "Earliest Data Available"),  caption = "Data Aggregation Availabilty of Maternal Socioeconomic Characteristics")
-```
-
-#### Some Observations
-
-The overall annual trend dating back to 1999, shows that the total number of births occuring in CT has declined from just over 86,000 in 1999 to just over 72,000 in 2014. 
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(plotly)
+library(dplyr)
+#Setup environment
+sub_folders <- list.files()
+raw_data_location <- grep("raw", sub_folders, value=T)
+data_location <- grep("data$", sub_folders, value=T)
+path_to_data <-  (paste0(getwd(), "/", data_location))
+
+source('~/Desktop/Data/Births/viz_births.R')
+
+demo_all_values <- demo_all[demo_all$Birth.Weight == "All" & demo_all$Gestational.Age == "All" & demo_all$Mother.s.Age == "All" & demo_all$Mother.s.Race.Ethnicity == "All",]
+  
+demo_all_values2 <- demo_all_values %>% 
+  select(Town, Year, Value) %>% 
+  group_by(Year) %>% 
+  summarise(Total = sum(Value))
+
 annual <- demo_all_values[!grepl("-", demo_all_values$Year), ]
-annual_plot <- annual %>% 
+  
+three <- c("1999-2001", "2000-2002", "2001-2003", "2002-2004", "2003-2005", "2004-2006", "2005-2007", 
+           "2006-2008", "2007-2009", "2008-2010", "2009-2011", "2010-2012", "2011-2013", "2012-2014")
+
+three_year <- demo_all_values[demo_all_values$Year %in% three,]
+
+five_year <- demo_all_values[!demo_all_values$Year %in% three & grepl("-", demo_all_values$Year),]
+
+
+total_births <- demo_all_values2 %>% 
+  plot_ly(x = ~Year, y = ~Total, type = 'scatter', mode = 'markers', name = 'Value',
+                  marker = list(color = 'red', width = 3))  %>% 
+  layout(title = "Total Births")
+
+
+annual_plot2 <- annual %>% 
   group_by(Year) %>% 
   summarise(Total = sum(Value)) %>% 
   plot_ly(x = ~Year, y = ~Total, type = 'scatter', mode = 'lines+markers', name = 'Annual Births',
           marker = list(color = 'blue', width = 3))  %>% 
   layout(title = "Total Annual Births in Connecticut")
 
-annual_plot
-```
+three_plot <- three_year %>% 
+  group_by(Year) %>% 
+  summarise(Total = sum(Value)) %>% 
+  plot_ly(x = ~Year, y = ~Total, type = 'scatter', mode = 'lines+markers', name = 'Three Year Average Births',
+          marker = list(color = 'orange', width = 3))  %>% 
+  layout(title = "Total 3-Year Births")
 
-When we break down those totals into age groups, we see a decline in teen births, and an increase in mother's aged 45+. 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+five_plot <- five_year %>% 
+  group_by(Year) %>% 
+  summarise(Total = sum(Value)) %>% 
+  plot_ly(x = ~Year, y = ~Total, type = 'scatter', mode = 'lines+markers', name = 'Five Year Average Births',
+          marker = list(color = 'green', width = 3))  %>% 
+  layout(title = "Total Births in CT")
 
+plot_all <- subplot(annual_plot, three_plot, five_plot)
+
+#######################################################################################################################################################################################
+behav_all_values <- behav_all[behav_all$Birth.Weight == "All" & behav_all$Gestational.Age == "All" & behav_all$Initiation.of.Prenatal.Care == "All" & behav_all$Smoking.During.Pregnancy == "All",]
+
+behav_all_values2 <- behav_all_values %>% 
+  select(Town, Year, Value) %>% 
+  group_by(Year) %>% 
+  summarise(Total = sum(Value))
+
+annual_behav <- behav_all_values[!grepl("-", behav_all_values$Year), ]
+
+behav_three_year <- behav_all_values[behav_all_values$Year %in% three,]
+
+behav_five_year <- behav_all_values[!behav_all_values$Year %in% three & grepl("-", behav_all_values$Year),]
+
+
+total_births_behav <- behav_all_values2 %>% 
+  plot_ly(x = ~Year, y = ~Total, type = 'scatter', mode = 'markers', name = 'Value',
+          marker = list(color = 'red', width = 3))  %>% 
+  layout(title = "Total Births")
+
+annual_plot_behav <- annual_behav %>% 
+  group_by(Year) %>% 
+  summarise(Total = sum(Value)) %>% 
+  plot_ly(x = ~Year, y = ~Total, type = 'scatter', mode = 'lines+markers', name = 'Annual Births',
+          marker = list(color = 'blue', width = 3))  %>% 
+  layout(title = "Total Annual Births in Connecticut")
+
+plot_annual <- subplot(annual_plot, annual_plot_behav) #demo and behav tell same story when filters are set to All - confirmed
+
+##############################################################################################################################################################################################
+
+#Births by Town
+# library(rgdal)
+# 
+# dsn <- system.file("vectors", package = "rgdal")
+# ogrInfo(dsn=dsn, layer="cities")
+# 
+# shp <- readOGR(dsn="/home/jdaly/Desktop/Data/Births/", layer="cb_2016_09_cousub_500k")
+# 
+# ogrInfo(dsn="cb_2016_09_cousub_500k.shp", layer="cities")
+# 
+# 
+# shape <- readOGR(dsn = ".", layer = "/home/jdaly/Desktop/Data/Births/cb_2016_09_cousub_500k", verbose=T)
+
+#Births by Age
+########################################################################################################################################
 age_annual <- demo_all[demo_all$Birth.Weight == "All" & demo_all$Gestational.Age == "All" & 
-                demo_all$Mother.s.Race.Ethnicity == "All" & demo_all$Measure.Type == "Number" &
-                !grepl("-", demo_all$Year) ,]
+                         demo_all$Mother.s.Race.Ethnicity == "All" & demo_all$Measure.Type == "Number" &
+                         !grepl("-", demo_all$Year) ,]
 
 age2 <- age_annual %>% 
   select(-c(FIPS, Birth.Weight, Gestational.Age, Mother.s.Race.Ethnicity, Measure.Type, Variable)) %>% 
@@ -176,9 +127,9 @@ m <- list(l=50, r=20) # l = left; r = right; t = top; b = bottom
 
 age_plot1 <- plot_ly(age_wide) %>% 
   add_trace(x = ~Year, y = ~`0 to 14 years`, type = 'bar', name = 'Total_0to14', marker = list(color = 'blue', width = 3)) %>% 
-layout(margin=m,
-       title = "Total Births Per Age Group - 0 to 14 Years", 
-       xaxis = x, yaxis = y)
+  layout(margin=m,
+         title = "Total Births Per Age Group - 0 to 14 Years", 
+         xaxis = x, yaxis = y)
 
 age_plot2 <- plot_ly(age_wide) %>% 
   add_trace(x = ~Year, y = ~`15 to 19 years`, type = 'bar', name = 'Total_15to19', marker = list(color = 'red', width = 3)) %>% 
@@ -228,10 +179,8 @@ plot_young_old <- subplot(age_plot1, age_plot8, shareY=TRUE)
 plot_all_age_plots <- subplot(plot_all_ages, plot_young_old, nrows=2, margin = 0.09, heights = c(0.6, 0.3))
 plot_all_age_plots
 
-```
-When we break down those totals into education levels, we see an increase over time in the number of mother's who have received 17 years or more of education, while mother's with high school, GED, or college level education have all decreased. 
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#Births by Education
+###########################################################################################################################################
 init_annual <- socio_all[socio_all$Birth.Weight == "All" & socio_all$Gestational.Age == "All" & 
                           socio_all$Mother.s.Marital.Status == "All" & socio_all$Measure.Type == "Number" &
                           !grepl("-", socio_all$Year) ,]
@@ -289,13 +238,12 @@ edu_plot5 <- plot_ly(edu_wide) %>%
 plot_all_edu <- subplot(edu_plot1, edu_plot2, edu_plot3, edu_plot4, edu_plot5, shareY = TRUE)
 
 plot_all_edu
-```
-When we break down those totals into groups indentified by when the mother's first intiated prenatal care, we see the majority of mother's inititating prenatal care within the first trimester. We've also broken out the total number of mother's considered in the "Late" category. Late prenatal care is the initiation of prenatal care after the first trimester of pregnancy. 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#Births by Initiation of Health Care
+###########################################################################################################################################
 init_annual <- behav_all[behav_all$Birth.Weight == "All" & behav_all$Gestational.Age == "All" & 
                            behav_all$Smoking.During.Pregnancy == "All" & behav_all$Measure.Type == "Number" &
-                          !grepl("-", behav_all$Year) ,]
+                           !grepl("-", behav_all$Year) ,]
 
 init2 <- init_annual %>% 
   select(-c(FIPS, Birth.Weight, Gestational.Age, Smoking.During.Pregnancy, Measure.Type, Variable)) %>% 
@@ -361,5 +309,4 @@ plot_all_init <- subplot(init_plot1, init_plot2, init_plot3, init_plot4, init_pl
 
 plot_all_init_plots <- subplot(plot_all_init, init_plot6, nrows=2, margin = 0.09, heights = c(0.6, 0.3))
 
-plot_all_init_plots
-```
+plot_all_init
